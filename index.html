@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full bg-[#09090b]">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moto Cidade — Gestão & Orçamentos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    .btn-orange { background-color: #FF6B00; color: #000000; font-weight: 700; }
+    .btn-orange:hover { background-color: #ea580c; }
+
+    /* Estilos exclusivos para impressão / exportação em PDF */
+    @media print {
+      body * { visibility: hidden; }
+      #printable-quote, #printable-quote * { visibility: visible; }
+      #printable-quote {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 16px !important;
+      }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body class="h-full text-zinc-100 flex flex-col selection:bg-[#FF6B00] selection:text-black">
+
+  <!-- ================= TELA DE LOGIN ================= -->
+  <div id="screen-login" class="flex-1 flex items-center justify-center p-4 bg-[#09090b]">
+    <main class="w-full max-w-md bg-[#141417] border border-zinc-800 rounded-2xl p-8 shadow-2xl">
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-14 h-14 bg-[#FF6B00] rounded-xl mb-4 shadow-lg shadow-[#FF6B00]/20">
+          <svg class="h-7 w-7 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <h1 class="text-2xl font-black tracking-tight text-white uppercase">MOTO CIDADE</h1>
+        <p class="text-xs text-zinc-400 font-medium tracking-widest uppercase mt-1">Sistema de Orçamentos & Peças</p>
+      </div>
+
+      <form onsubmit="event.preventDefault(); showApp();" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-zinc-300 uppercase mb-1.5">E-mail de Acesso</label>
+          <input type="email" value="gerente@motocidade.com.br" required class="w-full bg-zinc-900/90 border border-zinc-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#FF6B00] transition">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-zinc-300 uppercase mb-1.5">Senha</label>
+          <input type="password" value="••••••••" required class="w-full bg-zinc-900/90 border border-zinc-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#FF6B00] transition">
+        </div>
+        <button type="submit" class="w-full btn-orange py-3 rounded-lg text-sm uppercase tracking-wide transition cursor-pointer mt-2">
+          Entrar no Sistema
+        </button>
+      </form>
+      <p class="text-[11px] text-zinc-500 text-center mt-6">Ribeirão Preto — SP • Oficina Técnica e Peças</p>
+    </main>
+  </div>
+
+  <!-- ================= TELA DA APLICAÇÃO PRINCIPAL ================= -->
+  <div id="screen-app" class="hidden flex-1 flex flex-col md:flex-row min-h-screen">
+    
+    <!-- Menu Lateral -->
+    <aside class="w-full md:w-64 bg-[#141417] border-b md:border-b-0 md:border-r border-zinc-800 p-5 flex flex-col justify-between shrink-0">
+      <div>
+        <div class="flex items-center gap-3 mb-8 px-1">
+          <div class="w-9 h-9 bg-[#FF6B00] rounded-lg flex items-center justify-center font-black text-black text-sm shadow-md shadow-[#FF6B00]/20">MC</div>
+          <div>
+            <h2 class="font-black text-sm uppercase tracking-wider text-white">MOTO CIDADE</h2>
+            <span class="text-[10px] bg-[#FF6B00]/15 text-[#FF6B00] font-bold px-2 py-0.5 rounded border border-[#FF6B00]/30">PROPRIETÁRIO</span>
+          </div>
+        </div>
+
+        <nav class="space-y-1.5">
+          <button onclick="switchTab('dashboard')" id="tab-dashboard" class="w-full flex items-center gap-2.5 text-left px-3.5 py-2.5 rounded-lg text-sm font-semibold bg-[#FF6B00] text-black transition cursor-pointer">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+            Painel Geral
+          </button>
+          <button onclick="startNewQuote()" id="tab-novo-orcamento" class="w-full flex items-center gap-2.5 text-left px-3.5 py-2.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-800/80 transition cursor-pointer">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+            Novo Orçamento
+          </button>
+        </nav>
+      </div>
+
+      <div class="pt-4 border-t border-zinc-800/80 mt-6">
+        <button onclick="logout()" class="w-full flex items-center gap-2 text-xs font-medium text-zinc-400 hover:text-red-400 p-2 rounded-lg hover:bg-zinc-800/50 transition cursor-pointer">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+          Sair da Conta
+        </button>
+      </div>
+    </aside>
+
+    <!-- Conteúdo Principal -->
+    <main class="flex-1 p-5 md:p-8 overflow-y-auto bg-[#09090b]">
+      
+      <!-- ================= ABA: DASHBOARD ================= -->
+      <section id="view-dashboard" class="max-w-6xl mx-auto space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 class="text-2xl font-extrabold text-white tracking-tight">Painel de Orçamentos</h1>
+            <p class="text-xs text-zinc-400 mt-0.5">Gerencie propostas, aprovações e envios via WhatsApp</p>
+          </div>
+          <button onclick="startNewQuote()" class="btn-orange px-4 py-2.5 rounded-lg text-sm inline-flex items-center gap-2 shadow-lg shadow-[#FF6B00]/10 cursor-pointer">
+            <span>+ Criar Orçamento</span>
+          </button>
+        </div>
+
+        <!-- Cards KPI -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-[#141417] p-5 rounded-xl border border-zinc-800">
+            <p class="text-xs font-medium text-zinc-400 uppercase tracking-wider">Em Rascunho / Aguardando</p>
+            <p id="kpi-draft" class="text-2xl font-black text-amber-400 mt-1.5">R$ 0,00</p>
+          </div>
+          <div class="bg-[#141417] p-5 rounded-xl border border-zinc-800">
+            <p class="text-xs font-medium text-zinc-400 uppercase tracking-wider">Aprovados</p>
+            <p id="kpi-approved" class="text-2xl font-black text-emerald-400 mt-1.5">R$ 0,00</p>
+          </div>
+          <div class="bg-[#141417] p-5 rounded-xl border border-zinc-800">
+            <p class="text-xs font-medium text-zinc-400 uppercase tracking-wider">Concluídos</p>
+            <p id="kpi-completed" class="text-2xl font-black text-sky-400 mt-1.5">R$ 0,00</p>
+          </div>
+          <div class="bg-[#141417] p-5 rounded-xl border border-zinc-800">
+            <p class="text-xs font-medium text-zinc-400 uppercase tracking-wider">Total Emitidos</p>
+            <p id="kpi-count" class="text-2xl font-black text-white mt-1.5">0</p>
+          </div>
+        </div>
+
+        <!-- Filtros e Busca -->
+        <div class="bg-[#141417] border border-zinc-800 rounded-xl p-4 flex flex-col sm:flex-row gap-3 justify-between items-center">
+          <div class="flex flex-wrap gap-1.5 w-full sm:w-auto">
+            <button onclick="setFilter('TODOS')" id="filter-TODOS" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-[#FF6B00] text-black cursor-pointer">Todos</button>
+            <button onclick="setFilter('RASCUNHO')" id="filter-RASCUNHO" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white bg-zinc-900 cursor-pointer">Rascunho</button>
+            <button onclick="setFilter('APROVADO')" id="filter-APROVADO" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white bg-zinc-900 cursor-pointer">Aprovados</button>
+            <button onclick="setFilter('CONCLUIDO')" id="filter-CONCLUIDO" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white bg-zinc-900 cursor-pointer">Concluídos</button>
+          </div>
+          <input id="search-input" type="text" oninput="renderDashboard()" placeholder="Buscar cliente, moto, placa ou código..." class="w-full sm:w-72 bg-zinc-900 border border-zinc-700 rounded-lg px-3.5 py-2 text-xs text-white focus:outline-none focus:border-[#FF6B00]">
+        </div>
+
+        <!-- Tabela de Orçamentos -->
+        <div class="bg-[#141417] border border-zinc-800 rounded-xl overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-zinc-900/90 text-zinc-400 uppercase font-semibold border-b border-zinc-800">
+              <tr>
+                <th class="p-3.5">Código</th>
+                <th class="p-3.5">Data</th>
+                <th class="p-3.5">Cliente</th>
+                <th class="p-3.5">Moto / Placa</th>
+                <th class="p-3.5">Total</th>
+                <th class="p-3.5">Status</th>
+                <th class="p-3.5 text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="quotes-table-body" class="divide-y divide-zinc-800/80 text-zinc-300">
+              <!-- Preenchido via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ================= ABA: NOVO / EDITAR ORÇAMENTO ================= -->
+      <section id="view-novo-orcamento" class="hidden max-w-6xl mx-auto space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 id="form-title" class="text-2xl font-extrabold text-white tracking-tight">Elaboração de Orçamento</h1>
+            <p class="text-xs text-zinc-400 mt-0.5">Preencha os itens e visualize o documento em tempo real</p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="switchTab('dashboard')" class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-zinc-800 hover:bg-zinc-700 text-zinc-200 transition cursor-pointer">
+              ← Voltar
+            </button>
+            <button onclick="window.print()" class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700 transition cursor-pointer">
+              🖨️ Imprimir / PDF
+            </button>
+            <button onclick="sendWhatsAppFromForm()" class="px-3.5 py-2 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition cursor-pointer">
+              💬 Enviar WhatsApp
+            </button>
+            <button onclick="saveQuote()" class="btn-orange px-4 py-2 rounded-lg text-xs uppercase tracking-wider transition cursor-pointer">
+              💾 Salvar Orçamento
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          
+          <!-- Coluna Esquerda: Formulário -->
+          <div class="lg:col-span-6 bg-[#141417] p-6 rounded-xl border border-zinc-800 space-y-5">
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+              <h2 class="text-xs font-bold text-[#FF6B00] uppercase tracking-wider">1. Dados do Cliente & Veículo</h2>
+              <select id="quote-status" onchange="updatePreview()" class="bg-zinc-900 border border-zinc-700 rounded-md px-2.5 py-1 text-xs font-semibold text-white focus:outline-none focus:border-[#FF6B00]">
+                <option value="RASCUNHO">Status: Rascunho</option>
+                <option value="APROVADO">Status: Aprovado</option>
+                <option value="CONCLUIDO">Status: Concluído</option>
+              </select>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div>
+                <label class="block text-xs font-medium text-zinc-400 mb-1">Nome do Cliente *</label>
+                <input id="client-name" type="text" placeholder="Ex: Carlos Eduardo" oninput="updatePreview()" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-[#FF6B00]">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-zinc-400 mb-1">WhatsApp (DDD + Número)</label>
+                <input id="client-phone" type="text" placeholder="Ex: 16999999999" oninput="updatePreview()" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-[#FF6B00]">
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-xs font-medium text-zinc-400 mb-1">Modelo da Moto / Placa / KM *</label>
+                <input id="client-bike" type="text" placeholder="Ex: Yamaha Fazer 250 (XYZ-9876) - 32.000 km" oninput="updatePreview()" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-[#FF6B00]">
+              </div>
+            </div>
+
+            <div class="border-t border-zinc-800 pt-4">
+              <h2 class="text-xs font-bold text-[#FF6B00] uppercase tracking-wider mb-3">2. Adicionar Peças ou Serviços</h2>
+              <div class="grid grid-cols-12 gap-2">
+                <input id="item-desc" type="text" placeholder="Descrição (ex: Kit Relação Vaz)" class="col-span-6 bg-zinc-900 border border-zinc-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-[#FF6B00]">
+                <input id="item-qty" type="number" min="1" value="1" placeholder="Qtd" class="col-span-2 bg-zinc-900 border border-zinc-700 rounded-lg p-2.5 text-xs text-white text-center focus:outline-none focus:border-[#FF6B00]">
+                <input id="item-price" type="number" step="0.01" min="0" placeholder="R$ Unit." class="col-span-2 bg-zinc-900 border border-zinc-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-[#FF6B00]">
+                <button type="button" onclick="addItem()" class="col-span-2 btn-orange rounded-lg text-xs py-2.5 cursor-pointer">+ Add</button>
+              </div>
+
+              <!-- Lista editável de itens -->
+              <div id="form-items-list" class="mt-3 space-y-1.5 max-h-48 overflow-y-auto">
+                <!-- Preenchido via JS -->
+              </div>
+            </div>
+
+            <div class="border-t border-zinc-800 pt-4 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div>
+                <label class="block text-xs font-medium text-zinc-400 mb-1">Desconto (R$)</label>
+                <input id="quote-discount" type="number" step="0.01" min="0" value="0" oninput="updatePreview()" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-[#FF6B00]">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-zinc-400 mb-1">Prazo / Observações</label>
+                <input id="quote-notes" type="text" value="Validade de 10 dias. Garantia de 90 dias." oninput="updatePreview()" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-[#FF6B00]">
+              </div>
+            </div>
+          </div>
+
+          <!-- Coluna Direita: Preview Documento A4 / PDF -->
+          <div id="printable-quote" class="lg:col-span-6 bg-white text-zinc-900 p-7 rounded-xl shadow-2xl flex flex-col justify-between min-h-[540px] border border-zinc-200">
+            <div>
+              <!-- Cabeçalho Documento -->
+              <div class="flex justify-between items-start border-b-2 border-zinc-900 pb-4 mb-5">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-[#FF6B00] rounded-lg flex items-center justify-center font-black text-black text-base">MC</div>
+                  <div>
+                    <h3 class="font-black text-xl tracking-tight text-black leading-none">MOTO CIDADE</h3>
+                    <p class="text-[11px] font-semibold text-zinc-600 mt-1">Oficina Especializada, Peças & Acessórios</p>
+                    <p class="text-[10px] text-zinc-500">Ribeirão Preto — SP • motocidade.com.br</p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <span id="prev-code" class="text-xs font-mono font-extrabold bg-zinc-100 border border-zinc-300 px-2.5 py-1 rounded text-zinc-900">#MC-2026-001</span>
+                  <p id="prev-date" class="text-[11px] text-zinc-500 mt-1.5 font-medium">Data: --/--/----</p>
+                  <span id="prev-status-badge" class="inline-block mt-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-amber-100 text-amber-800">RASCUNHO</span>
+                </div>
+              </div>
+
+              <!-- Dados Cliente -->
+              <div class="bg-zinc-50 border border-zinc-200 rounded-lg p-3.5 text-xs mb-5 space-y-1">
+                <div class="flex justify-between">
+                  <p><strong class="text-zinc-700">Cliente:</strong> <span id="prev-name" class="font-semibold text-black">---</span></p>
+                  <p><strong class="text-zinc-700">Telefone:</strong> <span id="prev-phone" class="text-zinc-800">---</span></p>
+                </div>
+                <p><strong class="text-zinc-700">Veículo / Moto:</strong> <span id="prev-bike" class="font-semibold text-black">---</span></p>
+              </div>
+
+              <!-- Tabela de Peças e Serviços -->
+              <table class="w-full text-left text-xs mb-5">
+                <thead class="bg-zinc-900 text-white uppercase text-[10px] tracking-wider">
+                  <tr>
+                    <th class="py-2 px-2.5 rounded-tl">Descrição do Item / Serviço</th>
+                    <th class="py-2 px-2 text-center">Qtd</th>
+                    <th class="py-2 px-2 text-right">Unit.</th>
+                    <th class="py-2 px-2.5 text-right rounded-tr">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody id="prev-items" class="divide-y divide-zinc-200">
+                  <!-- Itens renderizados via JS -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Totais e Rodapé -->
+            <div class="border-t-2 border-zinc-200 pt-4">
+              <div class="space-y-1 text-xs mb-3">
+                <div class="flex justify-between text-zinc-600">
+                  <span>Subtotal:</span>
+                  <span id="prev-subtotal">R$ 0,00</span>
+                </div>
+                <div id="prev-discount-row" class="hidden flex justify-between text-emerald-700 font-medium">
+                  <span>Desconto aplicado:</span>
+                  <span id="prev-discount">- R$ 0,00</span>
+                </div>
+                <div class="flex justify-between items-center text-base font-black text-black pt-1.5 border-t border-zinc-200">
+                  <span>TOTAL GERAL:</span>
+                  <span id="prev-total" class="text-lg text-[#FF6B00] bg-black px-3 py-1 rounded">R$ 0,00</span>
+                </div>
+              </div>
+              <p id="prev-notes" class="text-[10px] text-zinc-500 italic text-center border-t border-zinc-100 pt-2">
+                * Validade de 10 dias. Garantia de 90 dias.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'motocidade_orcamentos_v1';
+
+    // Dados iniciais de demonstração
+    const defaultQuotes = [
+      {
+        id: 'MC-2026-001',
+        date: '25/11/2026',
+        clientName: 'João Silva',
+        clientPhone: '16991234567',
+        clientBike: 'Honda CG 160 Titan (ABC-1234)',
+        status: 'APROVADO',
+        discount: 0,
+        notes: 'Orçamento válido por 10 dias. Peças originais Honda.',
+        items: [
+          { desc: 'Kit Relação Completo Vaz', qty: 1, price: 185.00 },
+          { desc: 'Óleo Mobil Super Moto 10W30 (1L)', qty: 1, price: 45.00 },
+          { desc: 'Mão de Obra — Revisão Transmissão', qty: 1, price: 80.00 }
+        ]
+      },
+      {
+        id: 'MC-2026-002',
+        date: '27/11/2026',
+        clientName: 'Carlos Eduardo',
+        clientPhone: '16998765432',
+        clientBike: 'Yamaha Fazer 250 (XYZ-9876)',
+        status: 'RASCUNHO',
+        discount: 15.00,
+        notes: 'Validade de 10 dias. Garantia de 90 dias.',
+        items: [
+          { desc: 'Óleo Yamalube 20W50 Mineral', qty: 2, price: 42.50 },
+          { desc: 'Filtro de Óleo Original Yamaha', qty: 1, price: 38.00 },
+          { desc: 'Pastilha de Freio Dianteira Cobreq', qty: 1, price: 65.00 }
+        ]
+      }
+    ];
+
+    let quotes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultQuotes;
+    let currentFilter = 'TODOS';
+    let editingId = null;
+    let currentItems = [];
+
+    function formatBRL(value) {
+      return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function persistQuotes() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(quotes));
+    }
+
+    function showApp() {
+      document.getElementById('screen-login').classList.add('hidden');
+      document.getElementById('screen-app').classList.remove('hidden');
+      renderDashboard();
+    }
+
+    function logout() {
+      document.getElementById('screen-app').classList.add('hidden');
+      document.getElementById('screen-login').classList.remove('hidden');
+    }
+
+    function switchTab(tab) {
+      document.getElementById('view-dashboard').classList.add('hidden');
+      document.getElementById('view-novo-orcamento').classList.add('hidden');
+
+      document.getElementById('tab-dashboard').className = "w-full flex items-center gap-2.5 text-left px-3.5 py-2.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-800/80 transition cursor-pointer";
+      document.getElementById('tab-novo-orcamento').className = "w-full flex items-center gap-2.5 text-left px-3.5 py-2.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-800/80 transition cursor-pointer";
+
+      document.getElementById(`view-${tab}`).classList.remove('hidden');
+      document.getElementById(`tab-${tab}`).className = "w-full flex items-center gap-2.5 text-left px-3.5 py-2.5 rounded-lg text-sm font-semibold bg-[#FF6B00] text-black transition cursor-pointer";
+
+      if (tab === 'dashboard') renderDashboard();
+    }
+
+    function calculateTotal(quote) {
+      const subtotal = quote.items.reduce((acc, item) => acc + (item.qty * item.price), 0);
+      return Math.max(0, subtotal - (quote.discount || 0));
+    }
+
+    function setFilter(status) {
+      currentFilter = status;
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.className = "filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white bg-zinc-900 cursor-pointer";
+      });
+      document.getElementById(`filter-${status}`).className = "filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-[#FF6B00] text-black cursor-pointer";
+      renderDashboard();
+    }
+
+    function renderDashboard() {
+      let draftTotal = 0, approvedTotal = 0, completedTotal = 0;
+
+      quotes.forEach(q => {
+        const total = calculateTotal(q);
+        if (q.status === 'RASCUNHO') draftTotal += total;
+        if (q.status === 'APROVADO') approvedTotal += total;
+        if (q.status === 'CONCLUIDO') completedTotal += total;
+      });
+
+      document.getElementById('kpi-draft').innerText = formatBRL(draftTotal);
+      document.getElementById('kpi-approved').innerText = formatBRL(approvedTotal);
+      document.getElementById('kpi-completed').innerText = formatBRL(completedTotal);
+      document.getElementById('kpi-count').innerText = quotes.length;
+
+      const search = (document.getElementById('search-input')?.value || '').toLowerCase();
+      const filtered = quotes.filter(q => {
+        const matchesFilter = currentFilter === 'TODOS' || q.status === currentFilter;
+        const matchesSearch =
+          q.id.toLowerCase().includes(search) ||
+          q.clientName.toLowerCase().includes(search) ||
+          q.clientBike.toLowerCase().includes(search);
+        return matchesFilter && matchesSearch;
+      });
+
+      const tbody = document.getElementById('quotes-table-body');
+      tbody.innerHTML = '';
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-zinc-500">Nenhum orçamento encontrado.</td></tr>`;
+        return;
+      }
+
+      filtered.forEach(q => {
+        const total = calculateTotal(q);
+        const badgeStyles = {
+          RASCUNHO: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+          APROVADO: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+          CONCLUIDO: 'bg-sky-500/10 text-sky-400 border border-sky-500/20'
+        };
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-zinc-900/50 transition">
+            <td class="p-3.5 font-mono font-bold text-[#FF6B00]">#${q.id}</td>
+            <td class="p-3.5 text-zinc-400">${q.date}</td>
+            <td class="p-3.5 font-semibold text-white">${q.clientName}</td>
+            <td class="p-3.5">${q.clientBike}</td>
+            <td class="p-3.5 font-bold text-white">${formatBRL(total)}</td>
+            <td class="p-3.5">
+              <span class="px-2.5 py-1 rounded text-[10px] font-bold ${badgeStyles[q.status]}">${q.status}</span>
+            </td>
+            <td class="p-3.5 text-right space-x-1.5 whitespace-nowrap">
+              <button onclick="editQuote('${q.id}')" class="px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-semibold cursor-pointer">Editar / PDF</button>
+              <button onclick="sendWhatsAppById('${q.id}')" class="px-2.5 py-1 rounded bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-400 font-semibold cursor-pointer">WhatsApp</button>
+              <button onclick="deleteQuote('${q.id}')" class="px-2 py-1 rounded bg-red-500/10 hover:bg-red-500/30 text-red-400 font-semibold cursor-pointer" title="Excluir">✕</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function generateNextId() {
+      const nextNum = quotes.length + 1;
+      return `MC-2026-${String(nextNum).padStart(3, '0')}`;
+    }
+
+    function startNewQuote() {
+      editingId = null;
+      currentItems = [{ desc: 'Troca de Óleo + Revisão Básica', qty: 1, price: 65.00 }];
+
+      document.getElementById('form-title').innerText = 'Novo Orçamento';
+      document.getElementById('prev-code').innerText = `#${generateNextId()}`;
+      document.getElementById('prev-date').innerText = `Data: ${new Date().toLocaleDateString('pt-BR')}`;
+      document.getElementById('quote-status').value = 'RASCUNHO';
+      document.getElementById('client-name').value = '';
+      document.getElementById('client-phone').value = '';
+      document.getElementById('client-bike').value = '';
+      document.getElementById('quote-discount').value = 0;
+      document.getElementById('quote-notes').value = 'Validade de 10 dias. Garantia de 90 dias.';
+
+      switchTab('novo-orcamento');
+      renderFormItems();
+      updatePreview();
+    }
+
+    function editQuote(id) {
+      const q = quotes.find(item => item.id === id);
+      if (!q) return;
+
+      editingId = q.id;
+      currentItems = JSON.parse(JSON.stringify(q.items));
+
+      document.getElementById('form-title').innerText = `Editando Orçamento #${q.id}`;
+      document.getElementById('prev-code').innerText = `#${q.id}`;
+      document.getElementById('prev-date').innerText = `Data: ${q.date}`;
+      document.getElementById('quote-status').value = q.status;
+      document.getElementById('client-name').value = q.clientName;
+      document.getElementById('client-phone').value = q.clientPhone || '';
+      document.getElementById('client-bike').value = q.clientBike;
+      document.getElementById('quote-discount').value = q.discount || 0;
+      document.getElementById('quote-notes').value = q.notes || '';
+
+      switchTab('novo-orcamento');
+      renderFormItems();
+      updatePreview();
+    }
+
+    function addItem() {
+      const desc = document.getElementById('item-desc').value.trim();
+      const qty = parseInt(document.getElementById('item-qty').value) || 1;
+      const price = parseFloat(document.getElementById('item-price').value);
+
+      if (!desc || isNaN(price) || price < 0) {
+        alert('Informe a descrição e um valor unitário válido.');
+        return;
+      }
+
+      currentItems.push({ desc, qty, price });
+      document.getElementById('item-desc').value = '';
+      document.getElementById('item-qty').value = 1;
+      document.getElementById('item-price').value = '';
+
+      renderFormItems();
+      updatePreview();
+    }
+
+    function removeItem(index) {
+      currentItems.splice(index, 1);
+      renderFormItems();
+      updatePreview();
+    }
+
+    function renderFormItems() {
+      const container = document.getElementById('form-items-list');
+      container.innerHTML = '';
+
+      currentItems.forEach((item, index) => {
+        container.innerHTML += `
+          <div class="flex items-center justify-between bg-zinc-900/90 border border-zinc-800 px-3 py-2 rounded-lg text-xs">
+            <div class="truncate pr-2">
+              <span class="font-bold text-[#FF6B00]">${item.qty}x</span>
+              <span class="text-zinc-200 ml-1">${item.desc}</span>
+            </div>
+            <div class="flex items-center gap-3 shrink-0">
+              <span class="font-semibold text-white">${formatBRL(item.qty * item.price)}</span>
+              <button type="button" onclick="removeItem(${index})" class="text-zinc-500 hover:text-red-400 font-bold cursor-pointer">✕</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function updatePreview() {
+      const name = document.getElementById('client-name').value.trim() || '---';
+      const phone = document.getElementById('client-phone').value.trim() || '---';
+      const bike = document.getElementById('client-bike').value.trim() || '---';
+      const status = document.getElementById('quote-status').value;
+      const discount = parseFloat(document.getElementById('quote-discount').value) || 0;
+      const notes = document.getElementById('quote-notes').value.trim();
+
+      document.getElementById('prev-name').innerText = name;
+      document.getElementById('prev-phone').innerText = phone;
+      document.getElementById('prev-bike').innerText = bike;
+      document.getElementById('prev-notes').innerText = notes ? `* ${notes}` : '';
+
+      const badge = document.getElementById('prev-status-badge');
+      badge.innerText = status;
+      badge.className = 'inline-block mt-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded ' + (
+        status === 'APROVADO' ? 'bg-emerald-100 text-emerald-800' :
+        status === 'CONCLUIDO' ? 'bg-sky-100 text-sky-800' : 'bg-amber-100 text-amber-800'
+      );
+
+      const tbody = document.getElementById('prev-items');
+      tbody.innerHTML = '';
+      let subtotal = 0;
+
+      if (currentItems.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-zinc-400 italic">Nenhum item adicionado</td></tr>`;
+      } else {
+        currentItems.forEach(item => {
+          const lineTotal = item.qty * item.price;
+          subtotal += lineTotal;
+          tbody.innerHTML += `
+            <tr>
+              <td class="py-2 px-2.5 font-medium text-zinc-900">${item.desc}</td>
+              <td class="py-2 px-2 text-center text-zinc-600">${item.qty}</td>
+              <td class="py-2 px-2 text-right text-zinc-600">${formatBRL(item.price)}</td>
+              <td class="py-2 px-2.5 text-right font-bold text-black">${formatBRL(lineTotal)}</td>
+            </tr>
+          `;
+        });
+      }
+
+      const finalTotal = Math.max(0, subtotal - discount);
+      document.getElementById('prev-subtotal').innerText = formatBRL(subtotal);
+
+      const discountRow = document.getElementById('prev-discount-row');
+      if (discount > 0) {
+        discountRow.classList.remove('hidden');
+        document.getElementById('prev-discount').innerText = `- ${formatBRL(discount)}`;
+      } else {
+        discountRow.classList.add('hidden');
+      }
+
+      document.getElementById('prev-total').innerText = formatBRL(finalTotal);
+    }
+
+    function saveQuote() {
+      const clientName = document.getElementById('client-name').value.trim();
+      const clientBike = document.getElementById('client-bike').value.trim();
+
+      if (!clientName || !clientBike) {
+        alert('Preencha o Nome do Cliente e o Modelo da Moto antes de salvar.');
+        return;
+      }
+
+      const payload = {
+        id: editingId || generateNextId(),
+        date: editingId ? (quotes.find(q => q.id === editingId)?.date || new Date().toLocaleDateString('pt-BR')) : new Date().toLocaleDateString('pt-BR'),
+        clientName,
+        clientPhone: document.getElementById('client-phone').value.trim(),
+        clientBike,
+        status: document.getElementById('quote-status').value,
+        discount: parseFloat(document.getElementById('quote-discount').value) || 0,
+        notes: document.getElementById('quote-notes').value.trim(),
+        items: currentItems
+      };
+
+      if (editingId) {
+        const idx = quotes.findIndex(q => q.id === editingId);
+        if (idx !== -1) quotes[idx] = payload;
+      } else {
+        quotes.unshift(payload);
+      }
+
+      persistQuotes();
+      switchTab('dashboard');
+    }
+
+    function deleteQuote(id) {
+      if (!confirm(`Deseja realmente excluir o orçamento #${id}?`)) return;
+      quotes = quotes.filter(q => q.id !== id);
+      persistQuotes();
+      renderDashboard();
+    }
+
+    function openWhatsAppMessage(quote) {
+      const cleanPhone = (quote.clientPhone || '').replace(/\D/g, '');
+      const itemsText = quote.items
+        .map(i => `• ${i.qty}x ${i.desc} — ${formatBRL(i.qty * i.price)}`)
+        .join('\n');
+
+      const total = calculateTotal(quote);
+      const message =
+        `*MOTO CIDADE — ORÇAMENTO #${quote.id}*\n` +
+        `Olá, *${quote.clientName}*! Segue o orçamento para sua *${quote.clientBike}*:\n\n` +
+        `${itemsText}\n\n` +
+        (quote.discount > 0 ? `Desconto: -${formatBRL(quote.discount)}\n` : '') +
+        `*TOTAL: ${formatBRL(total)}*\n\n` +
+        `_${quote.notes || 'Aguardamos sua aprovação!'}_`;
+
+      const url = cleanPhone
+        ? `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(message)}`
+        : `https://wa.me/?text=${encodeURIComponent(message)}`;
+
+      window.open(url, '_blank');
+    }
+
+    function sendWhatsAppFromForm() {
+      const quote = {
+        id: editingId || generateNextId(),
+        clientName: document.getElementById('client-name').value.trim() || 'Cliente',
+        clientPhone: document.getElementById('client-phone').value.trim(),
+        clientBike: document.getElementById('client-bike').value.trim() || 'Moto',
+        discount: parseFloat(document.getElementById('quote-discount').value) || 0,
+        notes: document.getElementById('quote-notes').value.trim(),
+        items: currentItems
+      };
+      openWhatsAppMessage(quote);
+    }
+
+    function sendWhatsAppById(id) {
+      const q = quotes.find(item => item.id === id);
+      if (q) openWhatsAppMessage(q);
+    }
+  </script>
+</body>
+</html>
